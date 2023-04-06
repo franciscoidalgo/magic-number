@@ -1,7 +1,6 @@
 #ifndef SRC_MAGIC_SQUARE_HPP_
 #define SRC_MAGIC_SQUARE_HPP_
 
-
 #include <iostream>
 #include <vector>
 #include <stack>
@@ -11,11 +10,15 @@ using namespace std;
 typedef unsigned int uint;
 
 typedef struct summations {
-	uint row;
-	uint column;
+	uint *row;
+	uint *column;
 	uint diagonal;
 	uint other_diagonal;
-}summations_t;
+} summations_t;
+
+summations_t new_summations();
+
+typedef void (*update_operation)(uint*, uint);
 
 class Square {
 private:
@@ -24,13 +27,14 @@ private:
 	uint range;
 	uint magic_number;
 	vector<uint> used_numbers;
+	summations_t summations;
 
 	void initialize_square();
 	bool is_used(uint number);
 	bool is_valid(uint row, uint column, uint number);
-	summations_t calculate_summations(uint row, uint column);
-	bool validate_excess(uint row, uint column, uint number, summations_t summations);
-	bool validate_magic_number(uint row, uint column, uint number, summations_t summations);
+	bool validate_excess(uint row, uint column, uint number);
+	bool validate_magic_number(uint row, uint column, uint number);
+	void update_summations(uint row, uint column, uint number, update_operation operation);
 
 public:
 	Square(uint n);
@@ -40,16 +44,5 @@ public:
 	void print_square();
 	void solve();
 };
-
-class MagicSquare {
-private:
-	uint n;
-	vector<Square*> squares;
-
-public:
-	MagicSquare(uint n);
-	void print_squares();
-};
-
 
 #endif /* SRC_MAGIC_SQUARE_HPP_ */
