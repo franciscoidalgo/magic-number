@@ -1,11 +1,35 @@
 #include "magic_square.hpp"
 #include <iomanip>
 
-//Square
+// summations_t
+summations_t new_summations(uint dimensions) {
+	summations_t new_summations;
+	new_summations.column = new uint[dimensions];
+	new_summations.row = new uint[dimensions];
+	for (uint i = 0; i < dimensions; i++) {
+		new_summations.column[i] = 0;
+		new_summations.row[i] = 0;
+	}
+	new_summations.diagonal = 0;
+	new_summations.other_diagonal = 0;
+	return new_summations;
+}
+
+// update operations
+void update_plus(uint* summation, uint number) {
+	*summation += number;
+}
+
+void update_minus(uint* summation, uint number) {
+	*summation -= number;
+}
+
+// Square
 Square::Square(uint n) {
 	this->dimensions = n;
 	this->range = n * n;
 	this->magic_number = n * (n * n + 1) / 2;
+	this->summations = new_summations(n);
 	this->square = new uint*[n];
 	for (uint i = 0; i < n; i++) {
 		(this->square)[i] = new uint[n];
@@ -56,37 +80,22 @@ bool Square::is_used(uint number) {
 	return false;
 }
 
-summations_t Square::calculate_summations(uint row, uint column) {
-	summations_t summation = { 0, 0, 0, 0 };
-	for (uint i = 0; i < dimensions; i++) {
-		for (uint j = 0; j < dimensions; j++) {
-			uint current_number = square[i][j];
-			if (current_number == 0) {
-				return summation;
-			}
-			if (i == row) {
-				summation.row += current_number;
-			}
-			if (j == column) {
-				summation.column += current_number;
-			}
-			if (i == j) {
-				summation.diagonal += current_number;
-			}
-			if ((j + 1) == (this->dimensions - i)) {
-				summation.other_diagonal += current_number;
-			}
-		}
+void Square::update_summations(uint row, uint column, uint current_number, update_operation update) {
+	update(&(summations.row[row]), current_number);
+	update(&(summations.column[column]), current_number);
+	if (row == column) {
+		update(&(summations.diagonal), current_number);
 	}
-	return summation;
+	if ((column + 1) == (this->dimensions - row)) {
+		update(&(summations.other_diagonal), current_number);
+	}
 }
 
-bool Square::validate_excess(uint row, uint column, uint number,
-		summations_t summations) {
-	if ((summations.row + number) > magic_number) {
+bool Square::validate_excess(uint row, uint column, uint number) {
+	if ((summations.row[row] + number) > magic_number) {
 		return false;
 	}
-	if ((summations.column + number) > magic_number) {
+	if ((summations.column[column] + number) > magic_number) {
 		return false;
 	}
 	if (row == column && (summations.diagonal + number) > magic_number) {
@@ -99,14 +108,13 @@ bool Square::validate_excess(uint row, uint column, uint number,
 	return true;
 }
 
-bool Square::validate_magic_number(uint row, uint column, uint number,
-		summations_t summations) {
+bool Square::validate_magic_number(uint row, uint column, uint number) {
 	if ((row + 1) == dimensions
-			&& (summations.column + number) != magic_number) {
+			&& (summations.column[column] + number) != magic_number) {
 		return false;
 	}
 	if ((column + 1) == dimensions
-			&& (summations.row + number) != magic_number) {
+			&& (summations.row[row] + number) != magic_number) {
 		return false;
 	}
 	if ((row + 1) == dimensions && (column + 1) == dimensions
@@ -125,16 +133,15 @@ bool Square::is_valid(uint row, uint column, uint number) {
 		return false;
 	}
 
-	summations_t summations = this->calculate_summations(row, column);
-
-	if (!this->validate_magic_number(row, column, number, summations)) {
+	if (!this->validate_magic_number(row, column, number)) {
 		return false;
 	}
 
-	if (!this->validate_excess(row, column, number, summations)) {
+	if (!this->validate_excess(row, column, number)) {
 		return false;
 	}
 
+	update_summations(row, column, number, &update_plus);
 	return true;
 }
 
@@ -149,6 +156,7 @@ void Square::solve() {
 						this->solve();
 						this->square[i][j] = 0;
 						this->used_numbers.pop_back();
+						this->update_summations(i, j, n, &update_minus);
 					}
 				}
 				return;
@@ -163,17 +171,4 @@ void Square::solve() {
 		exit(0);
 	}
 	cout << endl;
-}
-
-// MagicSquare
-
-MagicSquare::MagicSquare(uint n) {
-	this->n = n;
-	this->squares = vector<Square*>();
-}
-
-void MagicSquare::print_squares() {
-	for (auto it = begin(this->squares); it != end(this->squares); ++it) {
-		(*it)->print_square();
-	}
 }
