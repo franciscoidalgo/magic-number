@@ -160,7 +160,7 @@ void Square::solve() {
 	char next;
 	cin >> next;
 	if (next != 'y') {
-		return;
+		exit(0);
 	}
 	cout << endl;
 }
@@ -173,7 +173,6 @@ MagicSquare::MagicSquare(uint n) {
 }
 
 void MagicSquare::print_squares() {
-	// vector<Square>::iterator it;
 	for (auto it = begin(this->squares); it != end(this->squares); ++it) {
 		(*it)->print_square();
 	}
