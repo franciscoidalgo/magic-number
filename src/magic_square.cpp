@@ -1,4 +1,5 @@
 #include "magic_square.hpp"
+#include <iomanip>
 
 //Square
 Square::Square(uint n) {
@@ -38,10 +39,11 @@ void Square::set(uint row, uint column, uint value) {
 void Square::print_square() {
 	for (uint i = 0; i < this->dimensions; i++) {
 		for (uint j = 0; j < this->dimensions; j++) {
-			cout << this->square[i][j];
+			cout << setw(4) << this->square[i][j];
 		}
 		cout << endl;
 	}
+	cout << endl;
 }
 
 bool Square::is_used(uint number) {
@@ -56,9 +58,12 @@ bool Square::is_used(uint number) {
 
 summations_t Square::calculate_summations(uint row, uint column) {
 	summations_t summation = { 0, 0, 0, 0 };
-	for (uint i = 0; i <= row; i++) {
-		for (uint j = 0; j <= column; j++) {
+	for (uint i = 0; i < dimensions; i++) {
+		for (uint j = 0; j < dimensions; j++) {
 			uint current_number = square[i][j];
+			if (current_number == 0) {
+				return summation;
+			}
 			if (i == row) {
 				summation.row += current_number;
 			}
@@ -68,7 +73,7 @@ summations_t Square::calculate_summations(uint row, uint column) {
 			if (i == j) {
 				summation.diagonal += current_number;
 			}
-			if (j + 1 == this->dimensions - i) {
+			if ((j + 1) == (this->dimensions - i)) {
 				summation.other_diagonal += current_number;
 			}
 		}
@@ -96,8 +101,8 @@ bool Square::validate_excess(uint row, uint column, uint number,
 
 bool Square::validate_magic_number(uint row, uint column, uint number,
 		summations_t summations) {
-	if ((row + 1) == dimensions && (summations.column + number) != magic_number) {
-		this->print_square();
+	if ((row + 1) == dimensions
+			&& (summations.column + number) != magic_number) {
 		return false;
 	}
 	if ((column + 1) == dimensions
@@ -151,8 +156,13 @@ void Square::solve() {
 		}
 	}
 	this->print_square();
+	cout << "Show next? y/n" << endl;
 	char next;
 	cin >> next;
+	if (next != 'y') {
+		return;
+	}
+	cout << endl;
 }
 
 // MagicSquare
