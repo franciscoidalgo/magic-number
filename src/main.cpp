@@ -8,7 +8,11 @@ using namespace std;
 
 int main(int argc, char **argv) {
 	unsigned int number = stoi(argv[1]);
-	Square square = Square(number);
+	int limit = 0;
+	if (argc == 3) {
+		limit = stoi(argv[2]);
+	}
+	Square square = Square(number, limit);
 
 	square.solve();
 
