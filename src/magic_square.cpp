@@ -16,20 +16,24 @@ summations_t new_summations(uint dimensions) {
 }
 
 // update operations
-void update_plus(uint* summation, uint number) {
+void update_plus(uint *summation, uint number) {
 	*summation += number;
 }
 
-void update_minus(uint* summation, uint number) {
+void update_minus(uint *summation, uint number) {
 	*summation -= number;
 }
 
 // Square
-Square::Square(uint n) {
+Square::Square(uint n, int limit) {
+	this->limit = limit;
+	this->count = 0;
 	this->dimensions = n;
 	this->range = n * n;
 	this->magic_number = n * (n * n + 1) / 2;
 	this->summations = new_summations(n);
+	this->used_numbers = new bool[n * n];
+	this->initialize_used_numbers();
 	this->square = new uint*[n];
 	for (uint i = 0; i < n; i++) {
 		(this->square)[i] = new uint[n];
@@ -42,6 +46,13 @@ Square::~Square() {
 		delete[] (this->square)[i];
 	}
 	delete[] this->square;
+	delete[] this->used_numbers;
+}
+
+void Square::initialize_used_numbers() {
+	for (uint i = 0; i < this->dimensions; i++) {
+		this->used_numbers[i] = false;
+	}
 }
 
 void Square::initialize_square() {
@@ -71,16 +82,11 @@ void Square::print_square() {
 }
 
 bool Square::is_used(uint number) {
-	for (auto it = begin(this->used_numbers); it != end(this->used_numbers);
-			++it) {
-		if (*it == number) {
-			return true;
-		}
-	}
-	return false;
+	return used_numbers[number];
 }
 
-void Square::update_summations(uint row, uint column, uint current_number, update_operation update) {
+void Square::update_summations(uint row, uint column, uint current_number,
+		update_operation update) {
 	update(&(summations.row[row]), current_number);
 	update(&(summations.column[column]), current_number);
 	if (row == column) {
@@ -145,6 +151,7 @@ bool Square::is_valid(uint row, uint column, uint number) {
 	return true;
 }
 
+
 void Square::solve() {
 	for (uint i = 0; i < this->dimensions; i++) {
 		for (uint j = 0; j < this->dimensions; j++) {
@@ -152,10 +159,10 @@ void Square::solve() {
 				for (uint n = 1; n <= this->range; n++) {
 					if (this->is_valid(i, j, n)) {
 						this->square[i][j] = n;
-						this->used_numbers.push_back(n);
+						this->used_numbers[n] = true;
 						this->solve();
 						this->square[i][j] = 0;
-						this->used_numbers.pop_back();
+						this->used_numbers[n] = false;
 						this->update_summations(i, j, n, &update_minus);
 					}
 				}
@@ -164,11 +171,15 @@ void Square::solve() {
 		}
 	}
 	this->print_square();
-	cout << "Show next? y/n" << endl;
-	char next;
-	cin >> next;
-	if (next != 'y') {
+	count++;
+	if (limit == count) {
 		exit(0);
 	}
-	cout << endl;
+	//cout << "Show next? y/n" << endl;
+	//char next;
+	//cin >> next;
+	//if (next != 'y') {
+	//	exit(0);
+	//}
+	//cout << endl;
 }
